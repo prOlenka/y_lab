@@ -5,19 +5,18 @@ import com.y_lab.project.service.HabitService;
 import com.y_lab.project.service.UserService;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 
 public class UserInterface {
     private final UserService userService;
     private final HabitService habitService;
-    private String loggedInUserId;
+    private User loggedInUser;
 
     public UserInterface(UserService userService, HabitService habitService) {
         this.userService = userService;
         this.habitService = habitService;
-        this.loggedInUserId = null;
+        this.loggedInUser = null;
     }
 
     public void start() {
@@ -25,7 +24,7 @@ public class UserInterface {
 
         while (true) {
             System.out.println("\nВыберите действие: ");
-            if (loggedInUserId == null) {
+            if (loggedInUser == null) {
                 showMainMenu(scanner);
             } else {
                 showUserMenu(scanner);
@@ -74,12 +73,12 @@ public class UserInterface {
         System.out.print("Введите пароль: ");
         String password = scanner.nextLine();
 
-        loggedInUserId = userService.loginUser(email, password);
-        if (Objects.equals(loggedInUserId, "Неверный пароль") || Objects.equals(loggedInUserId, "Пользователь с таким email не найден")) {
-            System.out.println(loggedInUserId);
-            loggedInUserId = null; // сбросить ID, если вход не удался
-        } else {
+        Optional<User> userOpt = userService.loginUser(email, password);
+        if (userOpt.isPresent()) {
+            loggedInUser = userOpt.get();
             System.out.println("Вход выполнен успешно");
+        } else {
+            System.out.println("Неверный email или пароль");
         }
     }
 
@@ -93,7 +92,7 @@ public class UserInterface {
         System.out.println("7. Показать привычки");
         System.out.println("8. Статистика привычек");
         System.out.println("9. Выйти из аккаунта");
-        if (userService.isAdmin(loggedInUserId)) {
+        if (userService.isAdmin(loggedInUser)) {
             System.out.println("10. Показать всех пользователей и их привычки");
         }
 
@@ -126,11 +125,11 @@ public class UserInterface {
                 showStatistics(scanner);
                 break;
             case 9:
-                loggedInUserId = null;
+                loggedInUser = null;
                 System.out.println("Вы вышли из аккаунта");
                 break;
             case 10:
-                if (userService.isAdmin(loggedInUserId)) {
+                if (userService.isAdmin(loggedInUser)) {
                     listAllUsersAndHabits();
                 } else {
                     System.out.println("Доступ запрещен: только администраторы могут выполнять эту операцию");
@@ -147,7 +146,7 @@ public class UserInterface {
         String newName = scanner.nextLine();
         System.out.print("Введите новый email: ");
         String newEmail = scanner.nextLine();
-        String updateProfileResult = userService.updateProfile(loggedInUserId, newName, newEmail);
+        String updateProfileResult = userService.updateProfile(loggedInUser, newName, newEmail);
         System.out.println(updateProfileResult);
     }
 
@@ -156,7 +155,7 @@ public class UserInterface {
         String oldPassword = scanner.nextLine();
         System.out.print("Введите новый пароль: ");
         String newPassword = scanner.nextLine();
-        String changePasswordResult = userService.changePassword(loggedInUserId, oldPassword, newPassword);
+        String changePasswordResult = userService.changePassword(loggedInUser, oldPassword, newPassword);
         System.out.println(changePasswordResult);
     }
 
@@ -164,9 +163,9 @@ public class UserInterface {
         System.out.print("Вы уверены, что хотите удалить аккаунт? (да/нет): ");
         String confirmation = scanner.nextLine();
         if (confirmation.equalsIgnoreCase("да")) {
-            String deleteResult = userService.deleteUser(loggedInUserId);
+            String deleteResult = userService.deleteUser(loggedInUser);
             System.out.println(deleteResult);
-            loggedInUserId = null; // Пользователь вышел из системы
+            loggedInUser = null; // Пользователь вышел из системы
         }
     }
 
@@ -177,33 +176,35 @@ public class UserInterface {
         String habitDescription = scanner.nextLine();
         System.out.print("Введите частоту (ежедневно/еженедельно): ");
         String habitFrequency = scanner.nextLine();
-        String addHabitResult = habitService.addHabit(loggedInUserId, habitName, habitDescription, habitFrequency);
+        String addHabitResult = habitService.addHabit(loggedInUser, habitName, habitDescription, habitFrequency);
         System.out.println(addHabitResult);
     }
 
     private void editHabit(Scanner scanner) {
         System.out.print("Введите ID привычки, которую хотите изменить: ");
-        String habitIdToEdit = scanner.nextLine();
+        Long habitIdToEdit = scanner.nextLong();
+        scanner.nextLine();
         System.out.print("Введите новое название привычки: ");
         String newHabitName = scanner.nextLine();
         System.out.print("Введите новое описание привычки: ");
         String newHabitDescription = scanner.nextLine();
         System.out.print("Введите новую частоту (ежедневно/еженедельно): ");
         String newHabitFrequency = scanner.nextLine();
-        String updateHabitResult = habitService.updateHabit(habitIdToEdit, loggedInUserId, newHabitName, newHabitDescription, newHabitFrequency);
+        String updateHabitResult = habitService.updateHabit(loggedInUser, habitIdToEdit, newHabitName, newHabitDescription, newHabitFrequency);
         System.out.println(updateHabitResult);
     }
 
     private void deleteHabit(Scanner scanner) {
         System.out.print("Введите ID привычки, которую хотите удалить: ");
-        String habitIdToDelete = scanner.nextLine();
-        String deleteHabitResult = habitService.deleteHabit(habitIdToDelete, loggedInUserId);
+        Long habitIdToDelete = scanner.nextLong();
+        scanner.nextLine();
+        String deleteHabitResult = habitService.deleteHabit(loggedInUser, habitIdToDelete);
         System.out.println(deleteHabitResult);
     }
 
     private void listUserHabits() {
         System.out.println("Ваши привычки:");
-        habitService.listUserHabits(loggedInUserId).forEach(habit -> {
+        habitService.listUserHabits(loggedInUser).forEach(habit -> {
             System.out.println("ID: " + habit.getId());
             System.out.println("Название: " + habit.getName());
             System.out.println("Описание: " + habit.getDescription());
@@ -239,12 +240,12 @@ public class UserInterface {
     private void calculateStreak(Scanner scanner) {
         System.out.print("Введите название привычки: ");
         String streakHabitName = scanner.nextLine();
-        Optional<String> streakHabitIdOpt = habitService.findHabitIdByName(loggedInUserId, streakHabitName);
+        Optional<Long> streakHabitIdOpt = habitService.findHabitIdByName(loggedInUser, streakHabitName);
 
         if (streakHabitIdOpt.isEmpty()) {
             System.out.println("Привычка с таким названием не найдена");
         } else {
-            int streak = habitService.calculateStreak(loggedInUserId, streakHabitIdOpt.get());
+            int streak = habitService.calculateStreak(loggedInUser, streakHabitIdOpt.get());
             if (streak == -1) {
                 System.out.println("Привычка не найдена");
             } else {
@@ -256,38 +257,38 @@ public class UserInterface {
     private void calculateSuccessPercentage(Scanner scanner) {
         System.out.print("Введите название привычки: ");
         String sHabitName = scanner.nextLine();
-        Optional<String> habitIdOpt = habitService.findHabitIdByName(loggedInUserId, sHabitName);
+        Optional<Long> habitIdOpt = habitService.findHabitIdByName(loggedInUser, sHabitName);
 
         if (habitIdOpt.isEmpty()) {
             System.out.println("Привычка с таким названием не найдена");
         } else {
             System.out.print("Введите период (например, 'неделя', 'месяц'): ");
             String period = scanner.nextLine();
-            String habitStatistics = habitService.generateHabitStatistics(loggedInUserId, habitIdOpt.get(), period);
+            String habitStatistics = habitService.generateHabitStatistics(loggedInUser, habitIdOpt.get(), period);
             System.out.println(habitStatistics);
         }
     }
 
     private void generateProgressReport() {
         System.out.println("Отчет по всем вашим привычкам:");
-        habitService.listUserHabits(loggedInUserId).forEach(habit -> {
+        habitService.listUserHabits(loggedInUser).forEach(habit -> {
             System.out.println("ID: " + habit.getId());
             System.out.println("Название: " + habit.getName());
             System.out.println("Описание: " + habit.getDescription());
             System.out.println("Частота: " + habit.getFrequency());
             System.out.println("Процент выполнения: " + habit.getStatistics("все время"));
-            System.out.println("Текущий streak: " + habitService.calculateStreak(loggedInUserId, habit.getId()) + " дней");
+            System.out.println("Текущий streak: " + habitService.calculateStreak(loggedInUser, habit.getId()) + " дней");
         });
     }
 
     private void listAllUsersAndHabits() {
-        List<User> allUsers = userService.getAllUsers(loggedInUserId);
+        List<User> allUsers = userService.getAllUsers(loggedInUser);
         for (User user : allUsers) {
             System.out.println("ID: " + user.getId());
             System.out.println("Имя: " + user.getName());
             System.out.println("Email: " + user.getEmail());
             System.out.println("Привычки:");
-            habitService.listUserHabits(user.getId()).forEach(habit -> {
+            habitService.listUserHabits(user).forEach(habit -> {
                 System.out.println("  - ID: " + habit.getId());
                 System.out.println("  - Название: " + habit.getName());
                 System.out.println("  - Описание: " + habit.getDescription());
@@ -296,4 +297,3 @@ public class UserInterface {
         }
     }
 }
-

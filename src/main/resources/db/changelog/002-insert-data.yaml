@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-insert-users
+      author: ylab
+      changes:
+        - insert:
+            tableName: user
+            schemaName: app_schema
+            columns:
+              - column:
+                  name: email
+                  value: admin@example.com
+              - column:
+                  name: password
+                  value: hashed_password
+              - column:
+                  name: name
+                  value: Admin
+              - column:
+                  name: is_admin
+                  valueBoolean: true

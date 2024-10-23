@@ -1,10 +1,12 @@
 package com.y_lab.project.repository;
 
 import com.y_lab.project.entity.User;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-public class UserRepository {
+@Repository
+public class UserRepository  {
     private final Map<String, User> users = new LinkedHashMap<>();
 
     public Optional<User> findByEmail(String email) {
@@ -21,8 +23,8 @@ public class UserRepository {
         users.put(user.getId(), user);
     }
 
-    public void deleteById(String id) {
-        users.remove(id);
+    public void delete(User user) {
+        users.remove(user.getId());
     }
 
     public List<User> findAll() {

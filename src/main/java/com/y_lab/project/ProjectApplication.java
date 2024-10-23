@@ -1,19 +1,19 @@
 package com.y_lab.project;
 
-import com.y_lab.project.repository.HabitRepository;
-import com.y_lab.project.repository.UserRepository;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import com.y_lab.project.service.HabitService;
 import com.y_lab.project.service.UserService;
 
+@SpringBootApplication
 public class ProjectApplication {
 
 	public static void main(String[] args) {
-			UserRepository userRepository = new UserRepository();
-			UserService userService = new UserService(userRepository);
-			HabitRepository habitRepository = new HabitRepository();
-			HabitService habitService = new HabitService(habitRepository);
-
-			UserInterface userInterface = new UserInterface(userService, habitService);
-			userInterface.start();
-		}
+		ApplicationContext context = SpringApplication.run(ProjectApplication.class, args);
+		UserService userService = context.getBean(UserService.class);
+		HabitService habitService = context.getBean(HabitService.class);
+		UserInterface userInterface = new UserInterface(userService, habitService);
+		userInterface.start();
 	}
+}

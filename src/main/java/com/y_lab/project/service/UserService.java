@@ -2,30 +2,30 @@ package com.y_lab.project.service;
 
 import com.y_lab.project.entity.User;
 import com.y_lab.project.repository.UserRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+@Service
 public class UserService {
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
 
         // Автоматическое добавление пользователя admin при запуске
         if (userRepository.findByEmail("admin@admin.com").isEmpty()) {
-            userRepository.save(new User(UUID.randomUUID().toString(), "admin@admin.com", "admin", "Administrator", true));
+            userRepository.save(new User("admin@admin.com", "admin", "Administrator", true));
         }
     }
-    public boolean isAdmin(String userId) {
-        return userRepository.findById(userId)
-                .map(User::isAdmin)
-                .orElse(false);
+
+    public boolean isAdmin(User user) {
+        return user != null && user.isAdmin();
     }
 
-    public List<User> getAllUsers(String adminId) {
-        if (isAdmin(adminId)) {
+    public List<User> getAllUsers(User admin) {
+        if (isAdmin(admin)) {
             return userRepository.findAll();
         } else {
             throw new SecurityException("Доступ запрещен: у вас нет прав администратора.");
@@ -39,26 +39,23 @@ public class UserService {
             return "Пользователь с таким email уже существует";
         }
 
-        User newUser = new User(UUID.randomUUID().toString(), name, email, password, false);
+        User newUser = new User(name, email, password, false);
         userRepository.save(newUser);
         return "Регистрация прошла успешно";
     }
 
-
-    public String loginUser(String email, String password) {
+    public Optional<User> loginUser(String email, String password) {
         Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            return "Пользователь с таким email не найден";
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (user.getPassword().equals(password)) {
+                return Optional.of(user);
+            }
         }
-        User user = userOpt.get();
-        if (!user.getPassword().equals(password)) {
-            return "Неверный пароль";
-        }
-        return "Вход выполнен успешно";
+        return Optional.empty();
     }
 
-    public String updateProfile(String userId, String newName, String newEmail) {
-        User user = userRepository.findById(userId).orElse(null);
+    public String updateProfile(User user, String newName, String newEmail) {
         if (user == null) {
             return "Пользователь не найден";
         }
@@ -67,17 +64,15 @@ public class UserService {
         return "Профиль обновлен";
     }
 
-    public String deleteUser(String userId) {
-        User user = userRepository.findById(userId).orElse(null);
+    public String deleteUser(User user) {
         if (user == null) {
             return "Пользователь не найден";
         }
-        userRepository.deleteById(userId);
+        userRepository.delete(user);
         return "Аккаунт удален";
     }
 
-    public String changePassword(String userId, String oldPassword, String newPassword) {
-        User user = userRepository.findById(userId).orElse(null);
+    public String changePassword(User user, String oldPassword, String newPassword) {
         if (user == null) {
             return "Пользователь не найден";
         }
@@ -89,4 +84,3 @@ public class UserService {
         return "Пароль изменен";
     }
 }
-
