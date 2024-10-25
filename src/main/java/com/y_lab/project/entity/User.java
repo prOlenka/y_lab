@@ -4,17 +4,20 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
+import lombok.ToString;
 
 @Entity
 @Table(name = "users", schema = "app_schema")
 @Getter
 @Setter
 @NoArgsConstructor
+@ToString
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
     @SequenceGenerator(name = "user_seq", sequenceName = "app_schema.user_seq", allocationSize = 1)
+
     private String id;
 
     @Column(nullable = false, unique = true)
@@ -47,14 +50,5 @@ public class User {
 
     public void changePassword(String newPassword) {
         this.password = newPassword;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "id='" + id + '\'' +
-                ", email='" + email + '\'' +
-                ", name='" + name + '\'' +
-                '}';
     }
 }

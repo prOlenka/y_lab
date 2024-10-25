@@ -13,8 +13,6 @@ public class PostgresContainerTest {
             postgresContainer.start();
 
             String jdbcUrl = postgresContainer.getJdbcUrl();
-            String username = postgresContainer.getUsername();
-            String password = postgresContainer.getPassword();
 
             assertTrue(jdbcUrl.contains("jdbc:postgresql://"));
             System.out.println("Postgres URL: " + jdbcUrl);

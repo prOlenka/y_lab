@@ -1,22 +1,27 @@
 package com.y_lab.project.service;
 
+import com.y_lab.project.ConfigLoader;
 import com.y_lab.project.entity.User;
 import com.y_lab.project.repository.UserRepository;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
-@Service
 public class UserService {
     private final UserRepository userRepository;
+    private final ConfigLoader configLoader;
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+        this.configLoader = new ConfigLoader("config.properties");
 
-        // Автоматическое добавление пользователя admin при запуске
-        if (userRepository.findByEmail("admin@admin.com").isEmpty()) {
-            userRepository.save(new User("admin@admin.com", "admin", "Administrator", true));
+        String adminEmail = configLoader.getProperty("admin.email");
+        String adminPassword = configLoader.getProperty("admin.password");
+        String adminName = configLoader.getProperty("admin.name");
+        boolean isAdmin = configLoader.getBooleanProperty("admin.isAdmin");
+
+        if (userRepository.findByEmail(adminEmail).isEmpty()) {
+            userRepository.save(new User(adminEmail, adminPassword, adminName, isAdmin));
         }
     }
 
@@ -33,7 +38,7 @@ public class UserService {
     }
 
     public String registerUser(String email, String password, String name) {
-        // Проверка на уникальность email
+
         Optional<User> existingUser = userRepository.findByEmail(email);
         if (existingUser.isPresent()) {
             return "Пользователь с таким email уже существует";

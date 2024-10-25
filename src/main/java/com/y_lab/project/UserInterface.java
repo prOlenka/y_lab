@@ -41,17 +41,13 @@ public class UserInterface {
         scanner.nextLine();
 
         switch (choice) {
-            case 1:
-                registerUser(scanner);
-                break;
-            case 2:
-                loginUser(scanner);
-                break;
-            case 3:
+            case 1 -> registerUser(scanner);
+            case 2 -> loginUser(scanner);
+            case 3 -> {
                 System.out.println("Выход из программы");
                 System.exit(0);
-            default:
-                System.out.println("Некорректный выбор. Пожалуйста, выберите 1, 2 или 3");
+            }
+            default -> System.out.println("Некорректный выбор. Пожалуйста, выберите 1, 2 или 3");
         }
     }
 
@@ -83,15 +79,17 @@ public class UserInterface {
     }
 
     private void showUserMenu(Scanner scanner) {
-        System.out.println("1. Редактировать профиль");
-        System.out.println("2. Изменить пароль");
-        System.out.println("3. Удалить аккаунт");
-        System.out.println("4. Добавить привычку");
-        System.out.println("5. Редактировать привычку");
-        System.out.println("6. Удалить привычку");
-        System.out.println("7. Показать привычки");
-        System.out.println("8. Статистика привычек");
-        System.out.println("9. Выйти из аккаунта");
+        System.out.println(
+                "1. Редактировать профиль\n" +
+                        "2. Изменить пароль\n" +
+                        "3. Удалить аккаунт\n" +
+                        "4. Добавить привычку\n" +
+                        "5. Редактировать привычку\n" +
+                        "6. Удалить привычку\n" +
+                        "7. Показать привычки\n" +
+                        "8. Статистика привычек\n" +
+                        "9. Выйти из аккаунта"
+        );
         if (userService.isAdmin(loggedInUser)) {
             System.out.println("10. Показать всех пользователей и их привычки");
         }
@@ -100,44 +98,26 @@ public class UserInterface {
         scanner.nextLine();
 
         switch (choice) {
-            case 1:
-                updateProfile(scanner);
-                break;
-            case 2:
-                changePassword(scanner);
-                break;
-            case 3:
-                deleteAccount(scanner);
-                break;
-            case 4:
-                addHabit(scanner);
-                break;
-            case 5:
-                editHabit(scanner);
-                break;
-            case 6:
-                deleteHabit(scanner);
-                break;
-            case 7:
-                listUserHabits();
-                break;
-            case 8:
-                showStatistics(scanner);
-                break;
-            case 9:
+            case 1 -> updateProfile(scanner);
+            case 2 -> changePassword(scanner);
+            case 3 -> deleteAccount(scanner);
+            case 4 -> addHabit(scanner);
+            case 5 -> editHabit(scanner);
+            case 6 -> deleteHabit(scanner);
+            case 7 -> listUserHabits();
+            case 8 -> showStatistics(scanner);
+            case 9 -> {
                 loggedInUser = null;
                 System.out.println("Вы вышли из аккаунта");
-                break;
-            case 10:
+            }
+            case 10 -> {
                 if (userService.isAdmin(loggedInUser)) {
                     listAllUsersAndHabits();
                 } else {
                     System.out.println("Доступ запрещен: только администраторы могут выполнять эту операцию");
                 }
-                break;
-            default:
-                System.out.println("Неверный выбор. Попробуйте снова");
-                break;
+            }
+            default -> System.out.println("Неверный выбор. Попробуйте снова");
         }
     }
 
@@ -165,7 +145,7 @@ public class UserInterface {
         if (confirmation.equalsIgnoreCase("да")) {
             String deleteResult = userService.deleteUser(loggedInUser);
             System.out.println(deleteResult);
-            loggedInUser = null; // Пользователь вышел из системы
+            loggedInUser = null;
         }
     }
 
@@ -205,35 +185,31 @@ public class UserInterface {
     private void listUserHabits() {
         System.out.println("Ваши привычки:");
         habitService.listUserHabits(loggedInUser).forEach(habit -> {
-            System.out.println("ID: " + habit.getId());
-            System.out.println("Название: " + habit.getName());
-            System.out.println("Описание: " + habit.getDescription());
-            System.out.println("Частота: " + habit.getFrequency());
+            System.out.println(
+                    "ID: " + habit.getId() + "\n" +
+                            "Название: " + habit.getName() + "\n" +
+                            "Описание: " + habit.getDescription() + "\n" +
+                            "Частота: " + habit.getFrequency()
+            );
         });
     }
 
     private void showStatistics(Scanner scanner) {
-        System.out.println("Выберите тип статистики:");
-        System.out.println("1. Подсчет текущих серий выполнения привычек (streak)");
-        System.out.println("2. Процент успешного выполнения привычек за определенный период");
-        System.out.println("3. Отчет по прогрессу выполнения");
+        System.out.println(
+                "Выберите тип статистики:\n" +
+                        "1. Подсчет текущих серий выполнения привычек (streak)\n" +
+                        "2. Процент успешного выполнения привычек за определенный период\n" +
+                        "3. Отчет по прогрессу выполнения"
+        );
 
         int statsChoice = scanner.nextInt();
         scanner.nextLine();
 
         switch (statsChoice) {
-            case 1:
-                calculateStreak(scanner);
-                break;
-            case 2:
-                calculateSuccessPercentage(scanner);
-                break;
-            case 3:
-                generateProgressReport();
-                break;
-            default:
-                System.out.println("Некорректный выбор. Пожалуйста, выберите 1, 2 или 3.");
-                break;
+            case 1 -> calculateStreak(scanner);
+            case 2 -> calculateSuccessPercentage(scanner);
+            case 3 -> generateProgressReport();
+            default -> System.out.println("Некорректный выбор. Пожалуйста, выберите 1, 2 или 3.");
         }
     }
 
@@ -272,27 +248,34 @@ public class UserInterface {
     private void generateProgressReport() {
         System.out.println("Отчет по всем вашим привычкам:");
         habitService.listUserHabits(loggedInUser).forEach(habit -> {
-            System.out.println("ID: " + habit.getId());
-            System.out.println("Название: " + habit.getName());
-            System.out.println("Описание: " + habit.getDescription());
-            System.out.println("Частота: " + habit.getFrequency());
-            System.out.println("Процент выполнения: " + habit.getStatistics("все время"));
-            System.out.println("Текущий streak: " + habitService.calculateStreak(loggedInUser, habit.getId()) + " дней");
+            System.out.println(
+                    "ID: " + habit.getId() + "\n" +
+                            "Название: " + habit.getName() + "\n" +
+                            "Описание: " + habit.getDescription() + "\n" +
+                            "Частота: " + habit.getFrequency() + "\n" +
+                            "Процент выполнения: " + habitService.generateHabitStatistics(loggedInUser, habit.getId(), "все время") + "\n" +
+                            "Текущий streak: " + habitService.calculateStreak(loggedInUser, habit.getId()) + " дней"
+            );
         });
     }
+
 
     private void listAllUsersAndHabits() {
         List<User> allUsers = userService.getAllUsers(loggedInUser);
         for (User user : allUsers) {
-            System.out.println("ID: " + user.getId());
-            System.out.println("Имя: " + user.getName());
-            System.out.println("Email: " + user.getEmail());
-            System.out.println("Привычки:");
+            System.out.println(
+                    "ID: " + user.getId() + "\n" +
+                            "Имя: " + user.getName() + "\n" +
+                            "Email: " + user.getEmail() + "\n" +
+                            "Привычки:"
+            );
             habitService.listUserHabits(user).forEach(habit -> {
-                System.out.println("  - ID: " + habit.getId());
-                System.out.println("  - Название: " + habit.getName());
-                System.out.println("  - Описание: " + habit.getDescription());
-                System.out.println("  - Частота: " + habit.getFrequency());
+                System.out.println(
+                        "  - ID: " + habit.getId() + "\n" +
+                                "  - Название: " + habit.getName() + "\n" +
+                                "  - Описание: " + habit.getDescription() + "\n" +
+                                "  - Частота: " + habit.getFrequency()
+                );
             });
         }
     }
