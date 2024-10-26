@@ -1,34 +1,41 @@
 package com.y_lab.project.service;
 
+import com.y_lab.project.ValidationUtil;
+import com.y_lab.project.dto.HabitDTO;
 import com.y_lab.project.entity.Habit;
 import com.y_lab.project.entity.User;
+import com.y_lab.project.mapper.HabitMapper;
 import com.y_lab.project.repository.HabitRepository;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class HabitService {
     private final HabitRepository habitRepository;
+    private final HabitMapper habitMapper;
 
-    public HabitService(HabitRepository habitRepository) {
+    public HabitService(HabitRepository habitRepository, HabitMapper habitMapper) {
         this.habitRepository = habitRepository;
+        this.habitMapper = habitMapper;
     }
 
-    public String addHabit(User user, String name, String description, String frequency) {
-        Habit newHabit = new Habit(user, name, description, frequency);
+    public String addHabit(HabitDTO habitDTO) {
+        ValidationUtil.validate(habitDTO);
+        Habit newHabit = habitMapper.toEntity(habitDTO);
         habitRepository.save(newHabit);
         return "Привычка успешно добавлена!";
     }
 
-    public String updateHabit(User user, Long habitId, String newName, String newDescription, String newFrequency) {
+    public String updateHabit(User user, Long habitId, HabitDTO habitDTO) {
+        ValidationUtil.validate(habitDTO);
         Optional<Habit> habitOptional = habitRepository.findByIdAndUser(habitId, user);
         if (habitOptional.isPresent()) {
             Habit habit = habitOptional.get();
-            habit.setName(newName);
-            habit.setDescription(newDescription);
-            habit.setFrequency(newFrequency);
+            habit.setName(habitDTO.getName());
+            habit.setDescription(habitDTO.getDescription());
+            habit.setFrequency(habitDTO.getFrequency());
             habitRepository.save(habit);
             return "Привычка успешно обновлена!";
         } else {
@@ -46,8 +53,10 @@ public class HabitService {
         }
     }
 
-    public List<Habit> listUserHabits(User user) {
-        return habitRepository.findAllByUser(user);
+    public List<HabitDTO> listUserHabits(User user) {
+        return habitRepository.findAllByUser(user).stream()
+                .map(habitMapper::toHabitDTO)
+                .collect(Collectors.toList());
     }
 
     public String generateHabitStatistics(User user, Long habitId, String period) {
@@ -61,9 +70,7 @@ public class HabitService {
     }
 
     private String getStatistics(Habit habit, String period) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate now = LocalDate.now();
-
         List<LocalDate> filteredDates = habit.getCompletionDates().stream()
                 .filter(date -> isWithinPeriod(date, now, period))
                 .toList();
@@ -114,8 +121,6 @@ public class HabitService {
                 .findFirst();
     }
 
-
-
     private boolean isWithinPeriod(LocalDate date, LocalDate now, String period) {
         switch (period.toLowerCase()) {
             case "день" -> {
@@ -143,6 +148,4 @@ public class HabitService {
             default -> throw new IllegalArgumentException("Неверный период: " + period);
         };
     }
-
-
 }

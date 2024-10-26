@@ -1,5 +1,6 @@
-package com.y_lab.project;
+package com.y_lab.project.interfaces;
 
+import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.User;
 import com.y_lab.project.service.HabitService;
 import com.y_lab.project.service.UserService;
@@ -11,7 +12,7 @@ import java.util.Scanner;
 public class UserInterface {
     private final UserService userService;
     private final HabitService habitService;
-    private User loggedInUser;
+    private UserDTO loggedInUser;
 
     public UserInterface(UserService userService, HabitService habitService) {
         this.userService = userService;
@@ -69,7 +70,7 @@ public class UserInterface {
         System.out.print("Введите пароль: ");
         String password = scanner.nextLine();
 
-        Optional<User> userOpt = userService.loginUser(email, password);
+        Optional<UserDTO> userOpt = userService.loginUser(email, password);
         if (userOpt.isPresent()) {
             loggedInUser = userOpt.get();
             System.out.println("Вход выполнен успешно");
