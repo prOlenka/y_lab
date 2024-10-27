@@ -1,7 +1,7 @@
 package com.y_lab.project.interfaces;
 
+import com.y_lab.project.dto.HabitDTO;
 import com.y_lab.project.dto.UserDTO;
-import com.y_lab.project.entity.User;
 import com.y_lab.project.service.HabitService;
 import com.y_lab.project.service.UserService;
 
@@ -60,7 +60,12 @@ public class UserInterface {
         System.out.print("Введите имя: ");
         String name = scanner.nextLine();
 
-        String registrationResult = userService.registerUser(email, password, name);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail(email);
+        userDTO.setPassword(password);
+        userDTO.setName(name);
+
+        String registrationResult = userService.registerUser(userDTO);
         System.out.println(registrationResult);
     }
 
@@ -157,7 +162,13 @@ public class UserInterface {
         String habitDescription = scanner.nextLine();
         System.out.print("Введите частоту (ежедневно/еженедельно): ");
         String habitFrequency = scanner.nextLine();
-        String addHabitResult = habitService.addHabit(loggedInUser, habitName, habitDescription, habitFrequency);
+
+        HabitDTO habitDTO = new HabitDTO();
+        habitDTO.setName(habitName);
+        habitDTO.setDescription(habitDescription);
+        habitDTO.setFrequency(habitFrequency);
+
+        String addHabitResult = habitService.addHabit(habitDTO);
         System.out.println(addHabitResult);
     }
 
@@ -171,7 +182,13 @@ public class UserInterface {
         String newHabitDescription = scanner.nextLine();
         System.out.print("Введите новую частоту (ежедневно/еженедельно): ");
         String newHabitFrequency = scanner.nextLine();
-        String updateHabitResult = habitService.updateHabit(loggedInUser, habitIdToEdit, newHabitName, newHabitDescription, newHabitFrequency);
+
+        HabitDTO habitDTO = new HabitDTO();
+        habitDTO.setName(newHabitName);
+        habitDTO.setDescription(newHabitDescription);
+        habitDTO.setFrequency(newHabitFrequency);
+
+        String updateHabitResult = habitService.updateHabit(loggedInUser, habitIdToEdit, habitDTO);
         System.out.println(updateHabitResult);
     }
 
@@ -231,6 +248,8 @@ public class UserInterface {
         }
     }
 
+
+
     private void calculateSuccessPercentage(Scanner scanner) {
         System.out.print("Введите название привычки: ");
         String sHabitName = scanner.nextLine();
@@ -262,8 +281,8 @@ public class UserInterface {
 
 
     private void listAllUsersAndHabits() {
-        List<User> allUsers = userService.getAllUsers(loggedInUser);
-        for (User user : allUsers) {
+        List<UserDTO> allUsers = userService.getAllUsers(loggedInUser);
+        for (UserDTO user : allUsers) {
             System.out.println(
                     "ID: " + user.getId() + "\n" +
                             "Имя: " + user.getName() + "\n" +
@@ -281,3 +300,4 @@ public class UserInterface {
         }
     }
 }
+

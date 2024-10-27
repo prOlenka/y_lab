@@ -1,5 +1,6 @@
 package com.y_lab.project.service;
 
+import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.User;
 import com.y_lab.project.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +12,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -25,33 +25,25 @@ public class UserServiceTest {
     private UserService userService;
 
     private User user;
-    private String userId;
-    private String email;
-    private String password;
-    private String name;
-    private boolean isAdmin;
+    private UserDTO userDTO;
 
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
-        email = "test@example.com";
-        password = "password";
-        name = "John Doe";
-        isAdmin = false;
-        user = createUser( email, password, name, isAdmin);
-        userId = UUID.randomUUID().toString();
-    }
-
-    private User createUser(String email, String password, String name, boolean isAdmin) {
-        return new User( email, password, name, isAdmin);
+        userDTO = new UserDTO();
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("password");
+        userDTO.setName("John Doe");
+        userDTO.setAdmin(false);
+        user = new User(userDTO.getEmail(), userDTO.getPassword(), userDTO.getName(), userDTO.isAdmin());
     }
 
     @Test
     public void testRegisterUser_Success() {
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
         doNothing().when(userRepository).save(any(User.class));
 
-        String result = userService.registerUser(email, password, name);
+        String result = userService.registerUser(userDTO);
 
         assertEquals("Регистрация прошла успешно", result);
         verify(userRepository, times(1)).save(any(User.class));
@@ -59,105 +51,99 @@ public class UserServiceTest {
 
     @Test
     public void testLoginUser_Success() {
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
 
-        Optional<User> result = userService.loginUser(email, password);
+        Optional<UserDTO> result = userService.loginUser(userDTO.getEmail(), userDTO.getPassword());
 
-        assertEquals("Вход выполнен успешно", result);
-        verify(userRepository, times(1)).findByEmail(email);
+        assertTrue(result.isPresent());
+        assertEquals(userDTO.getEmail(), result.get().getEmail());
+        verify(userRepository, times(1)).findByEmail(userDTO.getEmail());
     }
 
     @Test
     public void testLoginUser_Failure() {
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
 
-        Optional<User> result = userService.loginUser(email, password);
+        Optional<UserDTO> result = userService.loginUser(userDTO.getEmail(), userDTO.getPassword());
 
-        assertEquals("Неверный логин или пароль", result);
-        verify(userRepository, times(1)).findByEmail(email);
+        assertTrue(result.isEmpty());
+        verify(userRepository, times(1)).findByEmail(userDTO.getEmail());
     }
 
     @Test
     public void testUpdateUserProfile_Success() {
-        String userId = "1"; // Пример идентификатора пользователя, используйте правильный формат
-        String newEmail = "new@example.com";
-        String newName = "John Smith";
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
 
-        // Создайте пользователя с текущими данными
-        User user = new User("old@example.com", "password", "Old Name", false);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        String result = userService.updateProfile(user, newName, newEmail);
+        String result = userService.updateProfile(userDTO, "New Name", "new@example.com");
 
         assertEquals("Профиль обновлен", result);
-        assertEquals(newEmail, user.getEmail());
-        assertEquals(newName, user.getName());
-        verify(userRepository, times(1)).findById(userId);
+        assertEquals("New Name", user.getName());
+        assertEquals("new@example.com", user.getEmail());
         verify(userRepository, times(1)).save(user);
     }
 
-
-
     @Test
     public void testUpdateUserProfile_UserNotFound() {
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
 
-        String result = userService.updateProfile(user, "New Name", "new@example.com");
+        String result = userService.updateProfile(userDTO, "New Name", "new@example.com");
 
         assertEquals("Пользователь не найден", result);
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByEmail(userDTO.getEmail());
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     public void testChangePassword_Success() {
-        String oldPassword = "oldPassword";
-        String newPassword = "newPassword";
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
 
-        // Создайте пользователя с текущими данными
-        User user = new User( "test@example.com", oldPassword, "John Doe", false);
-
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        String result = userService.changePassword(user, oldPassword, newPassword); // Передайте объект User
+        String result = userService.changePassword(userDTO, userDTO.getPassword(), "newPassword");
 
         assertEquals("Пароль изменен", result);
-        assertEquals(newPassword, user.getPassword());
+        assertEquals("newPassword", user.getPassword());
         verify(userRepository, times(1)).save(user);
     }
 
-
     @Test
     public void testChangePassword_UserNotFound() {
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
 
-        String result = userService.changePassword(user, "oldPassword", "newPassword");
+        String result = userService.changePassword(userDTO, userDTO.getPassword(), "newPassword");
 
         assertEquals("Пользователь не найден", result);
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByEmail(userDTO.getEmail());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    public void testChangePassword_OldPasswordIncorrect() {
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
+
+        String result = userService.changePassword(userDTO, "wrongOldPassword", "newPassword");
+
+        assertEquals("Старый пароль неверен", result);
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     public void testIsAdmin_UserIsAdmin() {
-        user = createUser( email, password, name, true);
+        userDTO.setAdmin(true);
+        user = new User(userDTO.getEmail(), userDTO.getPassword(), userDTO.getName(), userDTO.isAdmin());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.of(user));
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-
-        boolean result = userService.isAdmin(user);
+        boolean result = userService.isAdmin(userDTO);
 
         assertTrue(result);
-        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, times(1)).findByEmail(userDTO.getEmail());
     }
 
     @Test
     public void testIsAdmin_UserNotFound() {
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(userDTO.getEmail())).thenReturn(Optional.empty());
 
-        boolean result = userService.isAdmin(user);
+        boolean result = userService.isAdmin(userDTO);
 
-        assertEquals(false, result);
-        verify(userRepository, times(1)).findById(userId);
+        assertFalse(result);
+        verify(userRepository, times(1)).findByEmail(userDTO.getEmail());
     }
 }

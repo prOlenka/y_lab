@@ -2,8 +2,8 @@ package com.y_lab.project.service;
 
 import com.y_lab.project.ValidationUtil;
 import com.y_lab.project.dto.HabitDTO;
+import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.Habit;
-import com.y_lab.project.entity.User;
 import com.y_lab.project.mapper.HabitMapper;
 import com.y_lab.project.repository.HabitRepository;
 
@@ -28,7 +28,7 @@ public class HabitService {
         return "Привычка успешно добавлена!";
     }
 
-    public String updateHabit(User user, Long habitId, HabitDTO habitDTO) {
+    public String updateHabit(UserDTO user, Long habitId, HabitDTO habitDTO) {
         ValidationUtil.validate(habitDTO);
         Optional<Habit> habitOptional = habitRepository.findByIdAndUser(habitId, user);
         if (habitOptional.isPresent()) {
@@ -43,7 +43,7 @@ public class HabitService {
         }
     }
 
-    public String deleteHabit(User user, Long habitId) {
+    public String deleteHabit(UserDTO user, Long habitId) {
         Optional<Habit> habitOptional = habitRepository.findByIdAndUser(habitId, user);
         if (habitOptional.isPresent()) {
             habitRepository.deleteByIdAndUser(habitId, user);
@@ -53,13 +53,13 @@ public class HabitService {
         }
     }
 
-    public List<HabitDTO> listUserHabits(User user) {
+    public List<HabitDTO> listUserHabits(UserDTO user) {
         return habitRepository.findAllByUser(user).stream()
                 .map(habitMapper::toHabitDTO)
                 .collect(Collectors.toList());
     }
 
-    public String generateHabitStatistics(User user, Long habitId, String period) {
+    public String generateHabitStatistics(UserDTO user, Long habitId, String period) {
         Optional<Habit> habitOptional = habitRepository.findByIdAndUser(habitId, user);
         if (habitOptional.isPresent()) {
             Habit habit = habitOptional.get();
@@ -84,7 +84,7 @@ public class HabitService {
                 period, completedDays, totalDays, completionPercentage);
     }
 
-    public int calculateStreak(User user, Long habitId) {
+    public int calculateStreak(UserDTO user, Long habitId) {
         Optional<Habit> habitOptional = habitRepository.findByIdAndUser(habitId, user);
 
         if (habitOptional.isEmpty()) {
@@ -114,7 +114,7 @@ public class HabitService {
         return streak;
     }
 
-    public Optional<Long> findHabitIdByName(User user, String habitName) {
+    public Optional<Long> findHabitIdByName(UserDTO user, String habitName) {
         return habitRepository.findAllByUser(user).stream()
                 .filter(habit -> habit.getName().equalsIgnoreCase(habitName))
                 .map(Habit::getId)

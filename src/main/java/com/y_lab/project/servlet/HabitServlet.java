@@ -1,8 +1,11 @@
 package com.y_lab.project.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.Habit;
 import com.y_lab.project.entity.User;
 import com.y_lab.project.dto.HabitDTO;
+import com.y_lab.project.mapper.UserMapper;
+import com.y_lab.project.mapper.UserMapperImpl;
 import com.y_lab.project.repository.HabitRepositoryJdbcImpl;
 import com.y_lab.project.service.HabitService;
 import jakarta.servlet.ServletException;
@@ -30,17 +33,16 @@ public class HabitServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        User user = getUserFromSession(request); // Получаем пользователя из сессии
+        UserMapper userMapper = new UserMapperImpl();
+        UserDTO userDTO = userMapper.toUserDTO(getUserFromSession(request));
         response.setContentType("application/json");
 
         if (pathInfo == null || pathInfo.equals("/")) {
-            // Получение всех привычек пользователя
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().write(objectMapper.writeValueAsString(habitRepository.findAllByUser(user)));
+            response.getWriter().write(objectMapper.writeValueAsString(habitRepository.findAllByUser(userDTO)));
         } else {
-            // Получение привычки по ID
             String habitId = pathInfo.substring(1);
-            Optional<Habit> habit = habitRepository.findByIdAndUser(Long.parseLong(habitId), user);
+            Optional<Habit> habit = habitRepository.findByIdAndUser(Long.parseLong(habitId), userDTO);
 
             if (habit.isPresent()) {
                 response.setStatus(HttpServletResponse.SC_OK);
@@ -52,10 +54,13 @@ public class HabitServlet extends HttpServlet {
         }
     }
 
+
+
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        User user = getUserFromSession(request);
+        UserMapper userMapper = new UserMapperImpl();
+        UserDTO userDTO = userMapper.toUserDTO(getUserFromSession(request));
 
         if (pathInfo == null || pathInfo.equals("/")) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -67,7 +72,7 @@ public class HabitServlet extends HttpServlet {
 
         try {
             HabitDTO habitDTO = objectMapper.readValue(request.getReader(), HabitDTO.class);
-            String updateResult = habitService.updateHabit(user, Long.parseLong(habitId), habitDTO.getName(), habitDTO.getDescription(), habitDTO.getFrequency());
+            String updateResult = habitService.updateHabit(userDTO, Long.parseLong(habitId), habitDTO);
 
             if (updateResult.equals("Привычка успешно обновлена!")) {
                 response.setStatus(HttpServletResponse.SC_OK);
@@ -82,10 +87,12 @@ public class HabitServlet extends HttpServlet {
         }
     }
 
+
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
-        User user = getUserFromSession(request);
+        UserMapper userMapper = new UserMapperImpl();
+        UserDTO userDTO = userMapper.toUserDTO(getUserFromSession(request));
 
         if (pathInfo == null || pathInfo.equals("/")) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -96,9 +103,9 @@ public class HabitServlet extends HttpServlet {
         String habitId = pathInfo.substring(1);
 
         try {
-            Optional<Habit> habit = habitRepository.findByIdAndUser(Long.parseLong(habitId), user);
+            Optional<Habit> habit = habitRepository.findByIdAndUser(Long.parseLong(habitId), userDTO);
             if (habit.isPresent()) {
-                habitRepository.deleteByIdAndUser(Long.parseLong(habitId), user);
+                habitRepository.deleteByIdAndUser(Long.parseLong(habitId), userDTO);
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getWriter().write("{\"status\":\"Привычка успешно удалена\"}");
             } else {

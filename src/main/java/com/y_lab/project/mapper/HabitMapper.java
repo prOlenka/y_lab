@@ -11,5 +11,6 @@ public interface HabitMapper {
 
     HabitDTO toHabitDTO(Habit habit);
     Habit toHabit(HabitDTO habitDTO);
+    Habit toEntity(HabitDTO habitDTO);
 }
 

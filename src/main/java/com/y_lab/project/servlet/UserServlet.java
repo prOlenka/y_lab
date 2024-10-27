@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.Optional;
 
-@WebServlet("/api/users/*")  // Общий эндпоинт для всех запросов к User
+@WebServlet("/api/users/*")
 public class UserServlet extends HttpServlet {
 
     private final UserRepository userRepository;

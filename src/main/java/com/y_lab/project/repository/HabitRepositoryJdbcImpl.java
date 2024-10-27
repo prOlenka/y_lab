@@ -1,7 +1,10 @@
 package com.y_lab.project.repository;
 
+import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.Habit;
 import com.y_lab.project.entity.User;
+import com.y_lab.project.mapper.UserMapper;
+import com.y_lab.project.mapper.UserMapperImpl;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -17,12 +20,12 @@ public class HabitRepositoryJdbcImpl implements HabitRepository {
     }
 
     @Override
-    public List<Habit> findAllByUser(User user) {
+    public List<Habit> findAllByUser(UserDTO user) {
         List<Habit> habits = new ArrayList<>();
         String sql = "SELECT * FROM app_schema.habits WHERE user_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, Long.parseLong(user.getId()));
+            stmt.setLong(1, user.getId());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Habit habit = mapRowToHabit(rs, user);
@@ -36,12 +39,12 @@ public class HabitRepositoryJdbcImpl implements HabitRepository {
     }
 
     @Override
-    public Optional<Habit> findByIdAndUser(Long id, User user) {
+    public Optional<Habit> findByIdAndUser(Long id, UserDTO user) {
         String sql = "SELECT * FROM app_schema.habits WHERE id = ? AND user_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
-            stmt.setLong(2, Long.parseLong(user.getId()));
+            stmt.setLong(2, user.getId());
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return Optional.of(mapRowToHabit(rs, user));
@@ -54,12 +57,12 @@ public class HabitRepositoryJdbcImpl implements HabitRepository {
     }
 
     @Override
-    public void deleteByIdAndUser(Long id, User user) {
+    public void deleteByIdAndUser(Long id, UserDTO user) {
         String sql = "DELETE FROM app_schema.habits WHERE id = ? AND user_id = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
-            stmt.setLong(2, Long.parseLong(user.getId()));
+            stmt.setLong(2, user.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace(); // Обработка исключений
@@ -82,19 +85,24 @@ public class HabitRepositoryJdbcImpl implements HabitRepository {
                 habit.setId(generatedKeys.getLong(1));
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Обработка исключений
+            e.printStackTrace();
         }
     }
 
-    private Habit mapRowToHabit(ResultSet rs, User user) throws SQLException {
+    private Habit mapRowToHabit(ResultSet rs, UserDTO userDTO) throws SQLException {
         Habit habit = new Habit();
+        UserMapper userMapper = new UserMapperImpl();
         habit.setId(rs.getLong("id"));
+
+        User user = userMapper.toEntity(userDTO);
         habit.setUser(user);
+
         habit.setName(rs.getString("name"));
         habit.setDescription(rs.getString("description"));
         habit.setFrequency(rs.getString("frequency"));
         return habit;
     }
+
 
 }
 
