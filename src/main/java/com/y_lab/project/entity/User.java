@@ -10,7 +10,6 @@ import lombok.ToString;
 @Table(name = "users", schema = "app_schema")
 @Getter
 @Setter
-@NoArgsConstructor
 @ToString
 public class User {
 
@@ -39,16 +38,5 @@ public class User {
         this.isAdmin = isAdmin;
     }
 
-    public boolean isAdmin() {
-        return isAdmin;
-    }
-
-    public void updateProfile(String name, String email) {
-        this.name = name;
-        this.email = email;
-    }
-
-    public void changePassword(String newPassword) {
-        this.password = newPassword;
-    }
+    public User() {}
 }

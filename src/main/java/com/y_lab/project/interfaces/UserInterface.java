@@ -4,22 +4,29 @@ import com.y_lab.project.dto.HabitDTO;
 import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.service.HabitService;
 import com.y_lab.project.service.UserService;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
+
+@Component
 public class UserInterface {
     private final UserService userService;
     private final HabitService habitService;
     private UserDTO loggedInUser;
 
+    @Autowired
     public UserInterface(UserService userService, HabitService habitService) {
         this.userService = userService;
         this.habitService = habitService;
         this.loggedInUser = null;
     }
 
+    @PostConstruct
     public void start() {
         Scanner scanner = new Scanner(System.in);
 

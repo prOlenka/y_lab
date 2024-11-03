@@ -1,75 +1,90 @@
 package com.y_lab.project.repository;
 
 import com.y_lab.project.entity.User;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class UserRepository {
-    private final Connection connection;
+    private final DataSource dataSource;
 
-    public UserRepository(Connection connection) {
-        this.connection = connection;
+    @Autowired
+    public UserRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public Optional<User> findByEmail(String email) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE email = ?")) {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, email);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return Optional.of(mapToUser(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Лучше использовать логирование
         }
         return Optional.empty();
     }
 
     public Optional<User> findById(String id) {
-        try (PreparedStatement stmt = connection.prepareStatement("SELECT * FROM users WHERE id = ?")) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return Optional.of(mapToUser(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Лучше использовать логирование
         }
         return Optional.empty();
     }
 
     public void save(User user) {
-        try (PreparedStatement stmt = connection.prepareStatement("INSERT INTO users (email, password, name, is_admin) VALUES (?, ?, ?, ?)")) {
+        String sql = "INSERT INTO users (email, password, name, is_admin) VALUES (?, ?, ?, ?)";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getEmail());
             stmt.setString(2, user.getPassword());
             stmt.setString(3, user.getName());
             stmt.setBoolean(4, user.isAdmin());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Лучше использовать логирование
         }
     }
 
     public void delete(User user) {
-        try (PreparedStatement stmt = connection.prepareStatement("DELETE FROM users WHERE id = ?")) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, user.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Лучше использовать логирование
         }
     }
 
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM users")) {
+        String sql = "SELECT * FROM users";
+        try (Connection connection = dataSource.getConnection();
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
                 users.add(mapToUser(rs));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Лучше использовать логирование
         }
         return users;
     }

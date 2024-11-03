@@ -1,17 +1,18 @@
 package com.y_lab.project.dto;
 
+import com.y_lab.project.entity.User;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.UUID;
 
 @Getter
 @Setter
 public class HabitDTO {
     private Long id;
+    private User userId;
 
     @NotBlank(message = "Name cannot be empty")
     @Size(max = 50, message = "Name must be up to 50 characters")

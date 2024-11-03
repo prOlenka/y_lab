@@ -52,7 +52,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_user_habit
-                    references: app_schema.user(id)
+                    references: app_schema.users(id)
                     onDelete: CASCADE
               - column:
                   name: name

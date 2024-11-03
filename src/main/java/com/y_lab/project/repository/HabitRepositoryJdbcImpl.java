@@ -4,105 +4,69 @@ import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.Habit;
 import com.y_lab.project.entity.User;
 import com.y_lab.project.mapper.UserMapper;
-import com.y_lab.project.mapper.UserMapperImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public class HabitRepositoryJdbcImpl implements HabitRepository {
 
-    private final Connection connection;
+    private final JdbcTemplate jdbcTemplate;
+    private final UserMapper userMapper;
 
-    public HabitRepositoryJdbcImpl(Connection connection) {
-        this.connection = connection;
+    @Autowired
+    public HabitRepositoryJdbcImpl(JdbcTemplate jdbcTemplate, UserMapper userMapper) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.userMapper = userMapper;
     }
 
     @Override
     public List<Habit> findAllByUser(UserDTO user) {
-        List<Habit> habits = new ArrayList<>();
         String sql = "SELECT * FROM app_schema.habits WHERE user_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, user.getId());
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Habit habit = mapRowToHabit(rs, user);
-                habits.add(habit);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return habits;
+        return jdbcTemplate.query(sql, new Object[]{user.getId()}, (rs, rowNum) -> mapRowToHabit(rs));
     }
 
     @Override
     public Optional<Habit> findByIdAndUser(Long id, UserDTO user) {
         String sql = "SELECT * FROM app_schema.habits WHERE id = ? AND user_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            stmt.setLong(2, user.getId());
-            ResultSet rs = stmt.executeQuery();
+        return jdbcTemplate.query(sql, new Object[]{id, user.getId()}, rs -> {
             if (rs.next()) {
-                return Optional.of(mapRowToHabit(rs, user));
+                return Optional.of(mapRowToHabit(rs));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return Optional.empty();
+            return Optional.empty();
+        });
     }
 
     @Override
     public void deleteByIdAndUser(Long id, UserDTO user) {
         String sql = "DELETE FROM app_schema.habits WHERE id = ? AND user_id = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-            stmt.setLong(2, user.getId());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace(); // Обработка исключений
-        }
+        jdbcTemplate.update(sql, id, user.getId());
     }
 
     @Override
     public void save(Habit habit) {
         String sql = "INSERT INTO app_schema.habits (user_id, name, description, frequency) VALUES (?, ?, ?, ?)";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            stmt.setLong(1, Long.parseLong(habit.getUser().getId()));
-            stmt.setString(2, habit.getName());
-            stmt.setString(3, habit.getDescription());
-            stmt.setString(4, habit.getFrequency());
-            stmt.executeUpdate();
-
-            ResultSet generatedKeys = stmt.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                habit.setId(generatedKeys.getLong(1));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        jdbcTemplate.update(sql, habit.getUser(), habit.getName(), habit.getDescription(), habit.getFrequency());
     }
 
-    private Habit mapRowToHabit(ResultSet rs, UserDTO userDTO) throws SQLException {
+    private Habit mapRowToHabit(ResultSet rs) throws SQLException {
         Habit habit = new Habit();
-        UserMapper userMapper = new UserMapperImpl();
         habit.setId(rs.getLong("id"));
-
-        User user = userMapper.toEntity(userDTO);
+        User user = new User(
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getString("name"),
+                rs.getBoolean("is_admin")
+        );
         habit.setUser(user);
-
         habit.setName(rs.getString("name"));
         habit.setDescription(rs.getString("description"));
         habit.setFrequency(rs.getString("frequency"));
         return habit;
     }
-
-
 }
-

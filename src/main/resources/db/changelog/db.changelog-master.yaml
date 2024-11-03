@@ -1,7 +1,7 @@
 databaseChangeLog:
   - include:
-     file: db/changelog/001-create-tables.yaml
+     file: 001-create-tables.yaml
      relativeToChangelogFile: true
   - include:
-     file: db/changelog/002-insert-data.yaml
+     file: 002-insert-data.yaml
      relativeToChangelogFile: true

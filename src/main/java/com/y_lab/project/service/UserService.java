@@ -1,29 +1,38 @@
 package com.y_lab.project.service;
 
-import com.y_lab.project.ConfigLoader;
-import com.y_lab.project.ValidationUtil;
 import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.User;
 import com.y_lab.project.mapper.UserMapper;
 import com.y_lab.project.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Service
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
+    @Value("${admin.email}")
+    private String adminEmail;
+
+    @Value("${admin.password}")
+    private String adminPassword;
+
+    @Value("${admin.name}")
+    private String adminName;
+
+    @Value("${admin.isAdmin}")
+    private boolean isAdmin;
+
     public UserService(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
-        ConfigLoader configLoader = new ConfigLoader("config.properties");
-
-        String adminEmail = configLoader.getProperty("admin.email");
-        String adminPassword = configLoader.getProperty("admin.password");
-        String adminName = configLoader.getProperty("admin.name");
-        boolean isAdmin = configLoader.getBooleanProperty("admin.isAdmin");
 
         if (userRepository.findByEmail(adminEmail).isEmpty()) {
             User adminUser = new User(adminEmail, adminPassword, adminName, isAdmin);
@@ -32,12 +41,10 @@ public class UserService {
     }
 
     public boolean isAdmin(UserDTO userDTO) {
-        ValidationUtil.validate(userDTO);
         return userDTO.isAdmin();
     }
 
     public List<UserDTO> getAllUsers(UserDTO adminDTO) {
-        ValidationUtil.validate(adminDTO);
         if (isAdmin(adminDTO)) {
             return userRepository.findAll().stream()
                     .map(userMapper::toUserDTO)
@@ -48,13 +55,12 @@ public class UserService {
     }
 
     public String registerUser(UserDTO userDTO) {
-        ValidationUtil.validate(userDTO);
         Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
         if (existingUser.isPresent()) {
             return "Пользователь с таким email уже существует";
         }
 
-        User newUser = userMapper.toUser(userDTO);
+        User newUser = userMapper.toEntity(userDTO);
         userRepository.save(newUser);
         return "Регистрация прошла успешно";
     }
@@ -75,7 +81,6 @@ public class UserService {
     }
 
     public String updateProfile(UserDTO userDTO, String newName, String newEmail) {
-        ValidationUtil.validate(userDTO);
         if (newName == null || newName.isBlank() || newEmail == null || newEmail.isBlank()) {
             throw new IllegalArgumentException("Имя и email не могут быть пустыми");
         }
@@ -93,8 +98,6 @@ public class UserService {
     }
 
     public String deleteUser(UserDTO userDTO) {
-        ValidationUtil.validate(userDTO);
-
         Optional<User> userOptional = userRepository.findByEmail(userDTO.getEmail());
         if (userOptional.isEmpty()) {
             return "Пользователь не найден";
@@ -105,7 +108,6 @@ public class UserService {
     }
 
     public String changePassword(UserDTO userDTO, String oldPassword, String newPassword) {
-        ValidationUtil.validate(userDTO);
         if (oldPassword == null || oldPassword.isBlank() || newPassword == null || newPassword.isBlank()) {
             throw new IllegalArgumentException("Пароли не могут быть пустыми");
         }

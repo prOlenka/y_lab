@@ -8,7 +8,9 @@ import javax.validation.constraints.NotBlank;
 @Getter
 @Setter
 public class UserDTO {
-    Long id;
+
+
+    private String id;
 
     @NotBlank(message = "Email cannot be empty")
     private String email;

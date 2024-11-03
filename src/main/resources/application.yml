@@ -1,0 +1,18 @@
+# Конфигурация администратора
+admin:
+  email: admin@admin.com
+  password: admin
+  name: Administrator
+  isAdmin: true
+
+# Конфигурация базы данных
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 1234
+
+# Конфигурация Liquibase
+liquibase:
+  change-log: classpath:/db/changelog/db.changelog-master.yaml
