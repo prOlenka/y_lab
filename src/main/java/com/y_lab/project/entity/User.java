@@ -11,6 +11,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 public class User {
 
     @Id
@@ -37,6 +38,4 @@ public class User {
         this.name = name;
         this.isAdmin = isAdmin;
     }
-
-    public User() {}
 }

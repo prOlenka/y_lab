@@ -1,9 +1,11 @@
 package com.y_lab.project.service;
 
+import com.y_lab.project.config.AdminProperties;
 import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.User;
 import com.y_lab.project.mapper.UserMapper;
 import com.y_lab.project.repository.UserRepository;
+import com.y_lab.project.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,29 +17,31 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserService {
+    private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final AdminProperties adminProperties;
 
-    @Value("${admin.email}")
-    private String adminEmail;
-
-    @Value("${admin.password}")
-    private String adminPassword;
-
-    @Value("${admin.name}")
-    private String adminName;
-
-    @Value("${admin.isAdmin}")
-    private boolean isAdmin;
-
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
+    public UserService(JwtUtil jwtUtil, UserRepository userRepository, UserMapper userMapper, AdminProperties adminProperties) {
+        this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.adminProperties = adminProperties;
 
-        if (userRepository.findByEmail(adminEmail).isEmpty()) {
-            User adminUser = new User(adminEmail, adminPassword, adminName, isAdmin);
+        if (userRepository.findByEmail(adminProperties.getEmail()).isEmpty()) {
+            User adminUser = new User(
+                    adminProperties.getEmail(),
+                    adminProperties.getPassword(),
+                    adminProperties.getName(),
+                    adminProperties.isAdmin()
+            );
             userRepository.save(adminUser);
         }
+    }
+
+    public UserDTO getUserFromToken(String token) {
+        String username = jwtUtil.extractUsername(token);
+        return userMapper.toUserDTO(userRepository.findByUsername(username));
     }
 
     public boolean isAdmin(UserDTO userDTO) {

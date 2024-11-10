@@ -17,24 +17,20 @@ import java.util.Optional;
 public class HabitRepositoryJdbcImpl implements HabitRepository {
 
     private final JdbcTemplate jdbcTemplate;
-    private final UserMapper userMapper;
 
     @Autowired
     public HabitRepositoryJdbcImpl(JdbcTemplate jdbcTemplate, UserMapper userMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        this.userMapper = userMapper;
     }
 
     @Override
     public List<Habit> findAllByUser(UserDTO user) {
-        String sql = "SELECT * FROM app_schema.habits WHERE user_id = ?";
-        return jdbcTemplate.query(sql, new Object[]{user.getId()}, (rs, rowNum) -> mapRowToHabit(rs));
+        return jdbcTemplate.query(SqlQueries.FIND_ALL_HABITS_BY_USER, new Object[]{user.getId()}, (rs, rowNum) -> mapRowToHabit(rs));
     }
 
     @Override
     public Optional<Habit> findByIdAndUser(Long id, UserDTO user) {
-        String sql = "SELECT * FROM app_schema.habits WHERE id = ? AND user_id = ?";
-        return jdbcTemplate.query(sql, new Object[]{id, user.getId()}, rs -> {
+        return jdbcTemplate.query(SqlQueries.FIND_HABIT_BY_ID_AND_USER, new Object[]{id, user.getId()}, rs -> {
             if (rs.next()) {
                 return Optional.of(mapRowToHabit(rs));
             }
@@ -44,14 +40,12 @@ public class HabitRepositoryJdbcImpl implements HabitRepository {
 
     @Override
     public void deleteByIdAndUser(Long id, UserDTO user) {
-        String sql = "DELETE FROM app_schema.habits WHERE id = ? AND user_id = ?";
-        jdbcTemplate.update(sql, id, user.getId());
+        jdbcTemplate.update(SqlQueries.DELETE_HABIT_BY_ID_AND_USER, id, user.getId());
     }
 
     @Override
     public void save(Habit habit) {
-        String sql = "INSERT INTO app_schema.habits (user_id, name, description, frequency) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(sql, habit.getUser(), habit.getName(), habit.getDescription(), habit.getFrequency());
+        jdbcTemplate.update(SqlQueries.SAVE_HABIT, habit.getUser().getId(), habit.getName(), habit.getDescription(), habit.getFrequency());
     }
 
     private Habit mapRowToHabit(ResultSet rs) throws SQLException {
