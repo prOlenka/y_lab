@@ -1,10 +1,9 @@
 package com.y_lab.project.repository;
 
 import com.y_lab.project.entity.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import com.y_lab.project.logging.CustomLogger;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -15,11 +14,12 @@ import java.util.Optional;
 @Repository
 public class UserRepository {
     private final DataSource dataSource;
-    private static final Logger logger = LoggerFactory.getLogger(UserRepository.class);
+    private final CustomLogger logger;
 
     @Autowired
-    public UserRepository(DataSource dataSource) {
+    public UserRepository(DataSource dataSource, CustomLogger logger) {
         this.dataSource = dataSource;
+        this.logger = logger;
     }
 
     public Optional<User> findByEmail(String email) {

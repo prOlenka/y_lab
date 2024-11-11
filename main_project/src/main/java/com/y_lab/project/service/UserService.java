@@ -6,8 +6,6 @@ import com.y_lab.project.entity.User;
 import com.y_lab.project.mapper.UserMapper;
 import com.y_lab.project.repository.UserRepository;
 import com.y_lab.project.util.JwtUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +13,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class UserService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;

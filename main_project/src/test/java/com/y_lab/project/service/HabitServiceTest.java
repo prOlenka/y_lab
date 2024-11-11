@@ -44,7 +44,7 @@ public class HabitServiceTest {
     public void setup() {
         MockitoAnnotations.openMocks(this);
         userDTO = new UserDTO();
-        userDTO.setId(123L);
+        userDTO.setId(user.getId());
 
         user = new User();
         user.setId("user123");
@@ -86,6 +86,7 @@ public class HabitServiceTest {
         assertEquals(newFrequency, habit.getFrequency());
         verify(habitRepository, times(1)).save(habit);
     }
+
 
     @Test
     public void testUpdateHabit_HabitNotFound() {

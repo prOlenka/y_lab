@@ -6,7 +6,6 @@ import com.y_lab.project.entity.Habit;
 import com.y_lab.project.mapper.HabitMapper;
 import com.y_lab.project.repository.HabitRepository;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -15,7 +14,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class HabitService {
     private final HabitRepository habitRepository;
     private final HabitMapper habitMapper;

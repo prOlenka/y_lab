@@ -1,55 +1,40 @@
 package com.y_lab.aspect;
 
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
 @Aspect
+@NoArgsConstructor
 @Component
 @Slf4j
 public class UserActionAuditAspect {
 
-    private final UserDTO userDTO;
+    @Pointcut("@annotation(com.y_lab.annotation.EnableAudit)")
+    public void enableAuditMethods() {}
 
-    public UserActionAuditAspect(UserDTO userDTO) {
-        this.userDTO = userDTO;
+    @Before("enableAuditMethods()")
+    public void logAction(JoinPoint joinPoint) {
+        log.info("Пользователь {} выполняет действие {} с параметрами: {}",
+                joinPoint.getSignature().getName(), Arrays.toString(joinPoint.getArgs()));
     }
 
-    @Before("execution(* com.y_lab.project.controller.UserController.*(..))")
-    public void logUserControllerAction(JoinPoint joinPoint) {
-        log.info("Пользователь {} выполняет действие {} с параметрами: {}", userDTO.getId(), joinPoint.getSignature().getName(), Arrays.toString(joinPoint.getArgs()));
+    @AfterReturning(pointcut = "enableAuditMethods()", returning = "result")
+    public void logSuccess(JoinPoint joinPoint, Object result) {
+        log.info("Действие {} пользователя завершилось успешно. Результат: {}",
+                joinPoint.getSignature().getName(), result);
     }
 
-    @AfterReturning(pointcut = "execution(* com.y_lab.project.controller.UserController.*(..))", returning = "result")
-    public void logUserControllerSuccess(JoinPoint joinPoint, Object result) {
-        log.info("Действие {} пользователя {} завершилось успешно. Результат: {}", joinPoint.getSignature().getName(), userDTO.getId(), result);
-    }
-
-    @AfterThrowing(pointcut = "execution(* com.y_lab.project.controller.UserController.*(..))", throwing = "exception")
-    public void logUserControllerError(JoinPoint joinPoint, Throwable exception) {
-        log.error("Ошибка при выполнении действия {} пользователем {}: {}", joinPoint.getSignature().getName(), userDTO.getId(), exception.getMessage());
-    }
-
-    @Before("execution(* com.y_lab.project.service.HabitService.addHabit(..)) || "
-            + "execution(* com.y_lab.project.service.HabitService.updateHabit(..)) || "
-            + "execution(* com.y_lab.project.service.HabitService.deleteHabit(..))")
-    public void logHabitServiceAction(JoinPoint joinPoint) {
-        log.info("Пользователь {} выполняет действие {} с параметрами: {}", userDTO.getId(), joinPoint.getSignature().getName(), Arrays.toString(joinPoint.getArgs()));
-    }
-
-    @AfterReturning(pointcut = "execution(* com.y_lab.project.service.HabitService.*(..))", returning = "result")
-    public void logHabitServiceSuccess(JoinPoint joinPoint, Object result) {
-        log.info("Действие {} пользователя {} завершилось успешно. Результат: {}", joinPoint.getSignature().getName(), userDTO.getId(), result);
-    }
-
-    @AfterThrowing(pointcut = "execution(* com.y_lab.project.service.HabitService.*(..))", throwing = "exception")
-    public void logHabitServiceError(JoinPoint joinPoint, Throwable exception) {
-        log.error("Ошибка при выполнении действия {} пользователем {}: {}", joinPoint.getSignature().getName(), userDTO.getId(), exception.getMessage());
+    @AfterThrowing(pointcut = "enableAuditMethods()", throwing = "exception")
+    public void logError(JoinPoint joinPoint, Throwable exception) {
+        log.error("Ошибка при выполнении действия {}: {}", joinPoint.getSignature().getName(), exception.getMessage());
     }
 }

@@ -20,7 +20,7 @@ public class ValidationAspect {
         this.validator = validator;
     }
 
-    @Before("execution(* com.y_lab.project.service..*(.., @jakarta.validation.Valid (*), ..)) && args(object,..)")
+    @Before("@within(com.y_lab.annotation.EnableAudit)")
     public void validate(JoinPoint joinPoint) throws ConstraintViolationException {
         for (Object arg : joinPoint.getArgs()) {
             if (arg != null) {

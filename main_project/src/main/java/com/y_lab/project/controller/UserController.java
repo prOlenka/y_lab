@@ -1,5 +1,6 @@
 package com.y_lab.project.controller;
 
+import com.y_lab.annotation.EnableAudit;
 import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+@EnableAudit
 @RestController
 @RequestMapping("/api/users")
 public class UserController {

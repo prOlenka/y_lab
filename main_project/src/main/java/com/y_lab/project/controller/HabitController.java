@@ -1,5 +1,6 @@
 package com.y_lab.project.controller;
 
+import com.y_lab.annotation.EnableAudit;
 import com.y_lab.project.dto.HabitDTO;
 import com.y_lab.project.dto.UserDTO;
 import com.y_lab.project.entity.Habit;
@@ -21,6 +22,7 @@ import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Optional;
 
+@EnableAudit
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/habits")
