@@ -7,7 +7,13 @@ import org.springframework.context.annotation.Configuration;
 public class LoggingAutoConfiguration {
 
     @Bean
+    public CustomLogger customLogger() {
+        return new CustomLogger();
+    }
+
+    @Bean
     public ExecutionTimeLoggerConfig executionTimeLoggerConfig() {
         return new ExecutionTimeLoggerConfig();
     }
 }
+

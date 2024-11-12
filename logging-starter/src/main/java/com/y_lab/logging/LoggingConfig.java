@@ -4,11 +4,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class CustomSpringConfig {
-
+public class LoggingConfig {
     @Bean
-    public CustomSpringListener customSpringListener() {
-        return new CustomSpringListener();
+    public CustomLogger customLogger() {
+        return new CustomLogger();
     }
-
 }
+

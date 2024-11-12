@@ -1,9 +1,9 @@
 package com.y_lab.project.repository;
 
 import com.y_lab.project.entity.User;
+import com.y_lab.logging.CustomLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import com.y_lab.project.logging.CustomLogger;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -31,7 +31,7 @@ public class UserRepository {
                 return Optional.of(mapToUser(rs));
             }
         } catch (SQLException e) {
-            logger.error("Error finding user by email: {}", email, e);
+            logger.error("Error finding user by email: " + email, e);
         }
         return Optional.empty();
     }
@@ -45,7 +45,7 @@ public class UserRepository {
                 return Optional.of(mapToUser(rs));
             }
         } catch (SQLException e) {
-            logger.error("Error finding user by id: {}", id, e);
+            logger.error("Error finding user by id: " + id, e);
         }
         return Optional.empty();
     }
@@ -59,7 +59,7 @@ public class UserRepository {
             stmt.setBoolean(4, user.isAdmin());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            logger.error("Error saving user: {}", user, e);
+            logger.error("Error saving user: " + user, e);
         }
     }
 
@@ -69,7 +69,7 @@ public class UserRepository {
             stmt.setString(1, user.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
-            logger.error("Error deleting user: {}", user, e);
+            logger.error("Error deleting user: " + user, e);
         }
     }
 
@@ -96,7 +96,7 @@ public class UserRepository {
                 return mapToUser(rs);
             }
         } catch (SQLException e) {
-            logger.error("Error finding user by username: {}", username, e);
+            logger.error("Error finding user by username: " + username, e);
         }
         return null;
     }
